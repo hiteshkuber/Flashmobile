@@ -9,10 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
@@ -65,7 +61,10 @@ fun MainScreen() {
         )
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(RequestPermission()) { granted ->
+    // use the proper ActivityResultContracts.RequestPermission and specify the result type
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted: Boolean ->
         hasCameraPermission = granted
     }
 
@@ -93,7 +92,7 @@ fun MainScreen() {
                 // turn torch on continuously
                 try {
                     cameraManager?.setTorchMode(cameraId, true)
-                } catch (e: CameraAccessException) {
+                } catch (_: CameraAccessException) {
                     // ignore
                 }
             } else {
@@ -108,7 +107,7 @@ fun MainScreen() {
                             cameraManager?.setTorchMode(cameraId, false)
                             delay(periodMs / 2)
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // ignore
                     }
                 }
@@ -117,7 +116,7 @@ fun MainScreen() {
             // ensure torch off
             try {
                 if (cameraId != null) cameraManager?.setTorchMode(cameraId, false)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // ignore
             }
         }
@@ -125,7 +124,7 @@ fun MainScreen() {
             blinkJob?.cancel()
             try {
                 if (cameraId != null) cameraManager?.setTorchMode(cameraId, false)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // ignore
             }
         }
@@ -172,7 +171,8 @@ fun SemiCircularGauge(value: Float, onValueChange: (Float) -> Unit) {
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectDragGestures { change, _ ->
-                    val center = Offset(size.width / 2, size.height / 2)
+                    // size here is IntSize from PointerInputScope; convert to Float for Offset
+                    val center = Offset(size.width / 2f, size.height / 2f)
                     val touch = change.position
                     val dx = touch.x - center.x
                     val dy = touch.y - center.y
